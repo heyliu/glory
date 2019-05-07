@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
+import 'zhihu/daily.dart';
 
 void main() => runApp(MyApp());
 
@@ -8,24 +9,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Welcome to Flutter',
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Welcome to Flutter'),
-          actions: createActions(),
-        ),
-        body: Center(
-          //child: Text('Hello World'),
-          child: RandomWords(),
-        ),
-      ),
+      home: ZhihuDaily()
     );
-  }
-
-
-  List<Widget> createActions(){
-    List<String> actions =["act1", "act2", "act3"];
-    return actions.map((text) => Center(child : Text(text)))
-        .toList();
   }
 }
 
@@ -38,7 +23,15 @@ class RandomWordState extends State<RandomWords>{
 
   @override
   Widget build(BuildContext context) {
-    return _buildSuggestions();
+    return new Scaffold(
+        appBar: new AppBar(
+          title: new Text('Startup Name Generator'),
+          actions: <Widget>[      // 新增代码开始 ...
+            new IconButton(icon: const Icon(Icons.list), onPressed: _pushSaved),
+          ],                      // ... 代码新增结束
+        ),
+        body: _buildSuggestions(),
+    );
   }
 
 
@@ -81,6 +74,9 @@ class RandomWordState extends State<RandomWords>{
   }
 
   
+
+  void _pushSaved() {
+  }
 }
 
 class RandomWords extends StatefulWidget{
