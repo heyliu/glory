@@ -38,11 +38,7 @@ class RandomWordState extends State<RandomWords>{
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-
-    );
-
-    //return _buildSuggestions();
+    return _buildSuggestions();
   }
 
 
@@ -91,3 +87,5 @@ class RandomWords extends StatefulWidget{
   @override
   State<StatefulWidget> createState() => RandomWordState();
 }
+
+

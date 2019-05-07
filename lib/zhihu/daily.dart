@@ -47,26 +47,31 @@ class ListItem extends StatelessWidget {
 }
 
 
-
-
-
-get() async {
+getStories() async {
   try{
     var httpClient = new HttpClient();
-    var uri = new Uri.http(
-        'example.com', '/path1/path2', {'param1': '42', 'param2': 'foo'});
+    var uri = Uri.parse("https://news-at.zhihu.com/api/4/news/latest");
     var request = await httpClient.getUrl(uri);
     var response = await request.close();
     if(response.statusCode == HttpStatus.ok){
-      var json = await response.transform(Utf8Decoder()).transform(StreamTransformer<String,Strory>)join();
-
+      Map map = await response.transform(Utf8Decoder())
+          .join().asStream().where((s) => s!= null)
+          .map(jsonDecode).first;
+      List jsonList = map["stories"];
+      List<Story> stroyList = jsonList.fold(<Story>[], (list,map){
+        list.add(Story.fromJson(map));
+        return list;
+      });
+      print(stroyList);
+    }else{
+      print("请求失败");
     }
-
-
-
   }catch(e){
-
+    print(e.toString());
   }
-
 }
+
+
+
+
 
