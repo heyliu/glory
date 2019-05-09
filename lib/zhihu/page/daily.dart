@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'articel.dart';
-import 'response.dart';
-import 'dart:convert';
-import 'dart:io';
+import 'package:glory/zhihu/model/response.dart';
+import 'package:glory/zhihu/api/api.dart';
 
 class ZhihuDaily extends StatefulWidget {
   @override
@@ -43,29 +42,17 @@ class ZhihuDailyState extends State<ZhihuDaily> {
 
   getStories() async {
     try {
-      var httpClient = new HttpClient();
-      var uri = Uri.parse("https://news-at.zhihu.com/api/4/news/latest");
-      var request = await httpClient.getUrl(uri);
-      var response = await request.close();
-      if (response.statusCode == HttpStatus.ok) {
-        Map map = await response
-            .transform(Utf8Decoder())
-            .join()
-            .asStream()
-            .where((s) => s != null)
-            .map(jsonDecode)
-            .first;
-        List jsonList = map["stories"];
+      Api.get().getStories().then((data){
         setState(() {
-          _storyList = jsonList.fold(<Story>[], (list, m) {
-            list.add(Story.fromJson(m));
-            return list;
-          });
-          print(_storyList);
+          _storyList = data;
         });
-      } else {
-        print("请求失败");
-      }
+      }).catchError((obj){
+        if(obj is Exception){
+
+        }
+        print("请求失败： " + obj.toString());
+        throw obj;
+      },test: (obj) => true);
     } catch (e) {
       print(e.toString());
     }

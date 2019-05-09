@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
-import 'zhihu/daily.dart';
+import 'package:glory/zhihu/page/daily.dart';
 
 void main() => runApp(MyApp());
 

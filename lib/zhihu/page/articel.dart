@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
-import 'response.dart';
+import 'package:glory/zhihu/model/response.dart' show Article;
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:glory/zhihu/api/api.dart';
 
 class ArticleDetail extends StatefulWidget {
   final int id;
@@ -77,22 +77,6 @@ class ArticleState extends State<ArticleDetail> {
               minHeight: viewportConstraints.maxHeight,
             ),
             child: _getColumn(),
-//            child: Column(
-//              mainAxisSize: MainAxisSize.min,
-//              mainAxisAlignment: MainAxisAlignment.spaceAround,
-//              children: <Widget>[
-//                Container(
-//                  // A fixed-height child.
-//                  color: const Color(0xff808000), // Yellow
-//                  height: 120.0,
-//                ),
-//                Container(
-//                  // Another fixed-height child.
-//                  color: const Color(0xff008000), // Green
-//                  height: 120.0,
-//                ),
-//              ],
-//            ),
           ),
         );
       },
@@ -103,7 +87,7 @@ class ArticleState extends State<ArticleDetail> {
     return WebView(
       onWebViewCreated: (controller) {
         _webViewController = controller;
-        _webViewController.loadUrl(buildlUri().toString());
+        _webViewController.loadUrl(buildUri().toString());
       },
       navigationDelegate: (request){
         return NavigationDecision.navigate;
@@ -113,7 +97,7 @@ class ArticleState extends State<ArticleDetail> {
     );
   }
 
-  Uri buildlUri() {
+  Uri buildUri() {
     return Uri.dataFromString(
       _article.body,
       mimeType: "text/html",
@@ -121,30 +105,15 @@ class ArticleState extends State<ArticleDetail> {
     );
   }
 
-  _getArticle() async {
+  _getArticle(){
     try {
-      var httpClient = new HttpClient();
-      var uri = Uri.parse("https://news-at.zhihu.com/api/4/news/$id");
-      var request = await httpClient.getUrl(uri);
-      var response = await request.close();
-      if (response.statusCode == HttpStatus.ok) {
-        Map map = await response
-            .transform(Utf8Decoder())
-            .join()
-            .asStream()
-            .map((s){
-              print(s);
-              return s;
-            })
-            .where((s) => s != null)
-            .map(jsonDecode)
-            .first;
-        setState(() {
-          _article = Article.fromJson(map);
-        });
-      } else {
-        print("请求失败");
-      }
+      Api.get().getArticle(id)
+          .catchError((err) {print("请求失败" + err.toString());}, test: (obj) => true)
+          .then((data) {
+            setState(() {
+              _article = data;
+            });
+          }, );
     } catch (e) {
       print(e.toString());
     }
