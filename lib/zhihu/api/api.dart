@@ -35,10 +35,14 @@ abstract class Api {
     return _requestFormMap(uri).then(jsonParse);
   }
 
+  Future<String> requestString(Uri url){
+    return _requestString(url);
+  }
+
 
 
   Future<Map> _requestFormMap(Uri url) {
-    return _requestJson(url).then((json){
+    return _requestString(url).then((json){
       if(json != null){
         return jsonDecode(json);
       }else{
@@ -47,7 +51,7 @@ abstract class Api {
     });
   }
 
-  Future<String> _requestJson(Uri url) {
+  Future<String> _requestString(Uri url) {
     return _httpClient.getUrl(url)
         .then((request) => request.close())
         .then((response) {
