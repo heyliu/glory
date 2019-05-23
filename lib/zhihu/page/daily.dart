@@ -9,7 +9,7 @@ class ZhihuDaily extends StatefulWidget {
     return ZhihuDailyState();
   }
 }
-
+//推荐列表
 class ZhihuDailyState extends State<ZhihuDaily> {
   var _storyList = <Story>[];
 
@@ -29,9 +29,7 @@ class ZhihuDailyState extends State<ZhihuDaily> {
         padding: EdgeInsets.symmetric(horizontal: 15),
         itemBuilder: (context, pos) {
           var story = _storyList[pos];
-          var img = story.images != null && story.images.length > 0
-              ? story.images[0]
-              : null;
+          var img = (story.images != null && story.images.length > 0) ? story.images[0] : null;
           return ListItem(story.title, story.id, image: img);
         },
         itemCount: _storyList.length,
@@ -39,7 +37,7 @@ class ZhihuDailyState extends State<ZhihuDaily> {
       ),
     );
   }
-
+  ///网络请求
   getStories() async {
     try {
       Api.get().getStories().then((data){
@@ -59,6 +57,7 @@ class ZhihuDailyState extends State<ZhihuDaily> {
   }
 }
 
+///list item
 class ListItem extends StatelessWidget {
   final String image;
   final String _title;

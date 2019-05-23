@@ -18,13 +18,14 @@ class ArticleDetail extends StatefulWidget {
 
 class ArticleState extends State<ArticleDetail> {
   final int id;
-  String cssStyleJs;
   String imgHolderJs;
 
   WebViewController _webViewController;
+
   ArticleState(this.id);
 
-  var _articleCompleter = new Completer<Article>();
+  Completer<Article> _articleCompleter = new Completer<Article>();
+  Completer<String> _cssCompleter;
 
   @override
   void initState() {
@@ -44,57 +45,28 @@ class ArticleState extends State<ArticleDetail> {
     );
   }
 
-  Future<bool> _requestPop(){
+  Future<bool> _requestPop() {
     var webCanGoBack = _webViewController.canGoBack();
-    webCanGoBack.then((b){
-      if(b){
+    webCanGoBack.then((b) {
+      if (b) {
         _webViewController.goBack();
-      }else{
+      } else {
         Navigator.of(context).pop();
       }
     });
     return webCanGoBack;
   }
-  
-//
-//  _getColumn(){
-//    return Column(
-//      mainAxisAlignment: MainAxisAlignment.start,
-//      mainAxisSize: MainAxisSize.min,
-//      children: _article == null
-//          ? <Widget>[]
-//          : <Widget>[
-//        Stack(
-//          alignment: Alignment(-0.5, 0.8),
-//          children: <Widget>[
-//            Image.network(_article.image, width: double.infinity,height: 200,fit: BoxFit.fitWidth,),
-//            Text(
-//              _article.title,
-//              style: TextStyle(
-//                  color: Colors.white,
-//                  fontWeight: FontWeight.bold,
-//                  fontSize: 22),
-//            ),
-//          ],
-//        ),
-//        Expanded(
-//          flex: 1,
-//          child: _getWebView(),
-//        )
-//        //getWebView()
-//      ],
-//    );
-//  }
 
+  ///初始化WebView
   _getWebView() {
     return WebView(
       onWebViewCreated: (controller) {
         _webViewController = controller;
-        _articleCompleter.future.then((_article){
+        _articleCompleter.future.then((_article) {
           _webViewController.loadUrl(buildUri(_article).toString());
         });
       },
-      navigationDelegate: (request){
+      navigationDelegate: (request) {
         return NavigationDecision.navigate;
       },
       javascriptMode: JavascriptMode.unrestricted,
@@ -104,67 +76,68 @@ class ArticleState extends State<ArticleDetail> {
     );
   }
 
-  _changeStyleByInjectJs() async{
-    if(cssStyleJs != null){
-       _webViewController.evaluateJavascript(cssStyleJs + imgHolderJs);
+  _changeStyleByInjectJs() async {
+    if (_cssCompleter != null) {
+      _cssCompleter.future.then((cssJs) {
+        _webViewController.evaluateJavascript(cssJs + imgHolderJs);
+      });
     }
-//    if(imgHolderJs != null){
-//      _webViewController.evaluateJavascript(imgHolderJs);
-//    }
   }
 
   Uri buildUri(Article article) {
     return Uri.dataFromString(
-      "<html><body>" + article.body +"</body></html>",
+      "<html><body>" + article.body + "</body></html>",
       mimeType: "text/html",
       encoding: Encoding.getByName("utf-8"),
     );
   }
 
-  _getArticle() async{
-    Api.get().getArticle(id)
-        .catchError((err) {print("请求失败" + err.toString());}, test: (obj) => true)
-        .then((data) {
-          setState(() {
-            _articleCompleter.complete(data);
-          });
-          var imgUrl = data.image;
-          var title = data.title;
-          imgHolderJs = "(function(){" +
+  _getArticle() async {
+    Api.get().getArticle(id).catchError((err) {
+      print("请求失败" + err.toString());
+    }, test: (obj) => true).then((data) {
+      setState(() {
+        _articleCompleter.complete(data);
+      });
+      var imgUrl = data.image;
+      var title = data.title;
+      //这段js是将图片嵌入顶部
+      imgHolderJs = "(function(){" +
           "var img = document.getElementsByClassName('img-place-holder');" +
           "img[0].innerHTML='"
               "<img src = \"$imgUrl\" height=\"100%\" width =\"100%\"/>" +
-              "<span class =\"my_title_span\">$title<span/>';" +
-          "var parent = document.getElementsByTagName('head').item(0);"+
-          "var style = document.createElement('style');"+
-          "style.type = 'text/css';"+
-          "parent.appendChild(style);"+
-          "style.innerHTML='span.my_title_span {color: #fff;line-height: 1.2em; font-size: 22px; position: relative; top: -60px; left:20px;}';"+
-          "}())";
-          return data.css;
-          })
-        .then(requestCss);
+          "<span class =\"my_title_span\">$title<span/>';" +
+          "var parent = document.getElementsByTagName('head').item(0);" +
+          "var style = document.createElement('style');" +
+          "style.type = 'text/css';" +
+          "parent.appendChild(style);" +
+          "style.innerHTML='span.my_title_span {color: #fff;line-height: 1.2em; font-size: 22px; position: relative; top: -60px; left:20px;}';" +
+          "}());";
+      return data.css;
+    }).then(_requestCss);
   }
 
-
-  void requestCss(List<String> css){
-    if(css != null && css.isNotEmpty){
-      css.forEach((ele){
-        Api.get().requestString(Uri.parse(ele))
-            .catchError((err) {print("请求失败" + err.toString());}, test: (obj) => true)
-            .then((cssStr){
-                cssStr = cssStr.replaceAll("\n", "").replaceAll("\"", "\\");
-                cssStyleJs = "(function() {" +
-                    "console.log('========');"
-                    "var parent = document.getElementsByTagName('head').item(0);" +
-                    "var style = document.createElement('style');" +
-                    "style.type = 'text/css';" +
-                    "style.innerHTML = \"$cssStr\";" +
-                    "parent.appendChild(style)" +
-                    "})()";
-            });
+  ///请求页面的css样式
+  _requestCss(List<String> css) {
+    if (css != null && css.isNotEmpty) {
+      _cssCompleter = Completer();
+      css.forEach((ele) {
+        Api.get().getString(Uri.parse(ele)).catchError((err) {
+          print("请求失败" + err.toString());
+        }, test: (obj) => true).then((cssStr) {
+          ///css
+          cssStr = cssStr.replaceAll("\n", "").replaceAll("\"", "\\");
+          var cssStyleJs = "(function() {" +
+              "console.log('========');"
+                  "var parent = document.getElementsByTagName('head').item(0);" +
+              "var style = document.createElement('style');" +
+              "style.type = 'text/css';" +
+              "style.innerHTML = \"$cssStr\";" +
+              "parent.appendChild(style)" +
+              "})();";
+          _cssCompleter.complete(cssStyleJs);
+        });
       });
-
     }
   }
 }
