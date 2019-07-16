@@ -31,7 +31,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
+  #生成json转换代码， 运行 "flutter pub run build_runner build"
   build_runner: ^1.0.0
   json_serializable: ^2.0.0
 

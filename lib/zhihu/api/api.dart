@@ -24,19 +24,10 @@ abstract class Api {
   }
 
   ///请求信息流
-  Future<List<Story>> getStories() {
+  Future<StoriesIndex> getStories() {
     var uri = Uri.parse("https://news-at.zhihu.com/api/4/news/latest");
-    OnValue<Map, List<Story>> jsonParse = (map) {
-      List data = map["stories"];
-      return data.fold(<Story>[], (list, m) {
-        list.add(Story.fromJson(m));
-        return list;
-      });
-    };
-    return _requestFormMap(uri).then(jsonParse);
+    return _requestFormMap(uri).then((map) => StoriesIndex.fromJson(map));
   }
-
-
 
 
   Future<String> getString(Uri url){
