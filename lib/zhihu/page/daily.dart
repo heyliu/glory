@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'articel.dart';
 import 'package:glory/zhihu/model/response.dart';
 import 'package:glory/zhihu/api/api.dart';
+import '../../style/style.dart';
 
 class ZhihuDaily extends StatefulWidget {
   @override
